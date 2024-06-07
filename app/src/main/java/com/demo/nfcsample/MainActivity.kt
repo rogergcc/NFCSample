@@ -1,58 +1,102 @@
 package com.demo.nfcsample
 
+import android.content.Intent
 import android.os.Bundle
-import com.google.android.material.snackbar.Snackbar
+import android.os.Handler
+import android.os.HandlerThread
+import android.view.WindowManager
 import androidx.appcompat.app.AppCompatActivity
-import androidx.navigation.findNavController
-import androidx.navigation.ui.AppBarConfiguration
-import androidx.navigation.ui.navigateUp
-import androidx.navigation.ui.setupActionBarWithNavController
-import android.view.Menu
-import android.view.MenuItem
 import com.demo.nfcsample.databinding.ActivityMainBinding
+import com.demo.nfcsample.nfc.NfcBaseActivity
 
 class MainActivity : AppCompatActivity() {
 
-    private lateinit var appBarConfiguration: AppBarConfiguration
     private lateinit var binding: ActivityMainBinding
+
+    //private var nfcIntentFilters: Array<IntentFilter>? = null
+
+    private var nfcThread: HandlerThread? = null
+    private var nfcThreadHandler: Handler? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+//        window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
 
-        setSupportActionBar(binding.toolbar)
+//        nfcThread = HandlerThread("nfc thread")
+//        nfcThread!!.start()
+//        nfcThreadHandler = Handler(nfcThread!!.looper)
 
-        val navController = findNavController(R.id.nav_host_fragment_content_main)
-        appBarConfiguration = AppBarConfiguration(navController.graph)
-        setupActionBarWithNavController(navController, appBarConfiguration)
-
-        binding.fab.setOnClickListener { view ->
-            Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                .setAction("Action", null).show()
+        binding.fab.setOnClickListener {
+            startActivity(Intent(this, NfcBaseActivity::class.java))
         }
+
+
     }
 
-    override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        menuInflater.inflate(R.menu.menu_main, menu)
-        return true
+
+
+//    override fun onResume() {
+//        super.onResume()
+//        // Get all NDEF discovered intents
+//        // Makes sure the app gets all discovered NDEF messages as long as it's in the foreground.
+////        nfcAdapter?.enableForegroundDispatch(this, nfcPendingIntent, null, null);
+//        nfcAdapter?.enableForegroundDispatch(this, nfcPendingIntent, arrayOf(ndefIntentFilter, techIntentFilter, tagIntentFilter), null)
+////        val isNfcEnabled = "NFC enabled: ${(nfcAdapter?.isEnabled).toString()}"
+////        val isNfcSuported = "NFC Supported: ${(nfcAdapter != null).toString()}"
+////
+////        binding.tvNFCEnabled.text = isNfcEnabled
+////        binding.tvNFCSupported.text= isNfcSuported
+//
+//        // Alternative: only get specific HTTP NDEF intent
+//        //nfcAdapter?.enableForegroundDispatch(this, nfcPendingIntent, nfcIntentFilters, null);
+//    }
+
+
+//    override fun onNewIntent(intent: Intent?) {
+//        super.onNewIntent(intent)
+//        val tag: Tag? = intent!!.getParcelableExtra(NfcAdapter.EXTRA_TAG)
+//
+//        if (tag != null) {
+//            Log.d(TAG, "onNewIntent: tag: $tag")
+//        }else{
+//            Log.d(TAG, "onNewIntent: tag nullo")
+//        }
+//
+//        if (NfcAdapter.ACTION_NDEF_DISCOVERED == intent.action) {
+//            val rawMessages = intent.getParcelableArrayExtra(NfcAdapter.EXTRA_NDEF_MESSAGES)
+//            val messages = rawMessages?.map { it as NdefMessage }
+//
+//        }
+//
+//
+//    }
+//
+//    override fun onDestroy() {
+//        super.onDestroy()
+//        if (nfcThread != null) {
+//            nfcThread!!.quitSafely()
+//            nfcThread = null
+//            nfcThreadHandler = null
+//        }
+//    }
+
+    companion object {
+        private const val TAG = "MainActivity"
     }
 
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        return when (item.itemId) {
-            R.id.action_settings -> true
-            else -> super.onOptionsItemSelected(item)
-        }
-    }
-
-    override fun onSupportNavigateUp(): Boolean {
-        val navController = findNavController(R.id.nav_host_fragment_content_main)
-        return navController.navigateUp(appBarConfiguration)
-                || super.onSupportNavigateUp()
-    }
+//    override fun onTagDiscovered(p0: Tag?) {
+//        Log.d(TAG, "onTagDiscovered: tag $p0")
+//
+//        val tag: Tag? = intent!!.getParcelableExtra(NfcAdapter.EXTRA_TAG)
+//
+//        if (tag != null) {
+//            Log.d(TAG, "onTagDiscovered: tag: $tag")
+//        }else{
+//            Log.d(TAG, "onTagDiscovered: tag nullo")
+//        }
+//
+//    }
 }
