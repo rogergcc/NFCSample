@@ -6,6 +6,7 @@ import android.content.IntentFilter
 import android.nfc.NfcAdapter
 import android.nfc.Tag
 import android.nfc.tech.Ndef
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
@@ -34,12 +35,23 @@ import androidx.appcompat.app.AppCompatActivity
          }
 
          // Setup PendingIntent for foreground dispatch
-         val nfcIntent = Intent(this, javaClass).apply {
-             addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
-         }
+         val nfcIntent =  Intent(this, javaClass).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
+
+
+         // Since Android 12 (API level 31) it's mandatory to specify mutability
+         // of PendingIntent. We need a mutable intent, which was a default
+         // option earlier.
+         // Since Android 12 (API level 31) it's mandatory to specify mutability
+         // of PendingIntent. We need a mutable intent, which was a default
+         // option earlier.
+         val flags =
+             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) PendingIntent.FLAG_MUTABLE else 0
+
          nfcPendingIntent = PendingIntent.getActivity(
-             this, 0, nfcIntent,
-             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+             this,
+             0,
+             nfcIntent,
+             flags
          )
 
          // Setup IntentFilter for NDEF discovered
@@ -52,7 +64,11 @@ import androidx.appcompat.app.AppCompatActivity
          }
          intentFiltersArray = arrayOf(ndefIntentFilter)
      }
-
+     fun getFlagCompat() = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+          PendingIntent.FLAG_MUTABLE
+     } else {
+         PendingIntent.FLAG_UPDATE_CURRENT
+     }
      override fun onResume() {
          super.onResume()
          Log.d(TAG, "onResume: Enabling foreground dispatch")
@@ -67,6 +83,7 @@ import androidx.appcompat.app.AppCompatActivity
 
      override fun onNewIntent(intent: Intent?) {
          super.onNewIntent(intent)
+         Toast.makeText(this, "Intent", Toast.LENGTH_SHORT).show()
          Log.d(TAG, "onNewIntent: Received new intent")
 
          if (intent == null) return
