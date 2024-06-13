@@ -23,19 +23,9 @@
         <activity
             android:name=".nfc.NfcBaseActivity"
             android:exported="true"
-            android:launchMode="singleTop" >
+            >
 
-            <!-- <intent-filter> -->
-            <!-- <action android:name="android.nfc.action.NDEF_DISCOVERED" /> -->
-            <!-- <category android:name="android.intent.category.DEFAULT" /> -->
-            <!-- <data android:mimeType="text/plain" /> -->
-            <!-- </intent-filter> -->
-            <!-- <intent-filter> -->
-            <!-- <action android:name="android.nfc.action.TAG_DISCOVERED" /> -->
-            <!-- </intent-filter> -->
-            <!-- <intent-filter> -->
-            <!-- <action android:name="android.nfc.action.TECH_DISCOVERED" /> -->
-            <!-- </intent-filter> -->
+
         </activity>
         <activity
             android:name=".MainActivity"
@@ -53,15 +43,7 @@
 
                 <data android:mimeType="text/plain" />
             </intent-filter>
-<!--            <intent-filter>-->
-<!--                <action android:name="android.nfc.action.TAG_DISCOVERED" />-->
-<!--            </intent-filter>-->
-<!--            <intent-filter>-->
-<!--                <action android:name="android.nfc.action.TECH_DISCOVERED" />-->
-<!--            </intent-filter>-->
-            <!-- <meta-data -->
-            <!-- android:name="android.app.lib_name" -->
-            <!-- android:value="" /> -->
+
         </activity>
     </application>
 

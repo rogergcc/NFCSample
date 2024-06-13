@@ -13,17 +13,18 @@ import android.nfc.tech.NfcA
 import android.os.Bundle
 import android.provider.Settings
 import android.util.Log
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
 import com.demo.nfcsample.databinding.ActivityMainBinding
+import com.demo.nfcsample.nfc.NfcBaseActivity
 import java.nio.charset.Charset
 
 
-class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback {
+class MainActivity : NfcBaseActivity(), NfcAdapter.ReaderCallback {
 
     private lateinit var binding: ActivityMainBinding
 
-    private var nfcAdapter: NfcAdapter? = null
 
     private lateinit var viewModel: NfcViewModel
 
@@ -40,7 +41,7 @@ class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback {
         viewModel = ViewModelProvider(this)[NfcViewModel::class.java]
         viewModel.checkNfcStatus()
         setUpObservers()
-        nfcAdapter = viewModel.getNfcAdapter()
+//        nfcAdapter = viewModel.getNfcAdapter()
 
     }
 
@@ -70,13 +71,12 @@ class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback {
     }
 
     override fun onTagDiscovered(tag: Tag?) {
-        Log.d(TAG, "Discovered!  ")
         if (tag == null) {
             Log.d(TAG, "No se descubrió ninguna tarjeta")
+            Toast.makeText(this, "No tag NDEF", Toast.LENGTH_SHORT).show()
             binding.tvNFCTechsDetails.text = getText(R.string.no_tag_detected)
             return
         }
-
         handleTag(tag)
 
 
@@ -120,14 +120,8 @@ class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback {
 
     override fun onResume() {
         super.onResume()
-        Log.d(TAG, "onResume: Reader Mode")
-        registerReceiver(nfcStateReceiver, IntentFilter(NfcAdapter.ACTION_ADAPTER_STATE_CHANGED))
-        //
-
-        // Work around for some broken Nfc firmware implementations that poll the card too fast
         val options = Bundle()
         options.putInt(NfcAdapter.EXTRA_READER_PRESENCE_CHECK_DELAY, 2500)
-
         nfcAdapter!!.enableReaderMode(
             this,
             this,
@@ -199,16 +193,11 @@ class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback {
 
     override fun onPause() {
         super.onPause()
-        unregisterReceiver(nfcStateReceiver)
-        nfcAdapter?.disableReaderMode(this)
     }
 
-    private val nfcStateReceiver = object : BroadcastReceiver() {
-        override fun onReceive(context: Context?, intent: Intent?) {
-            if (NfcAdapter.ACTION_ADAPTER_STATE_CHANGED == intent?.action) {
-                viewModel.checkNfcStatus()
-            }
-        }
+
+    override fun checkNfcStatus() {
+        viewModel.checkNfcStatus()
     }
 
     companion object {

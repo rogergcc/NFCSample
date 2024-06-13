@@ -60,9 +60,11 @@
             <TextView
                 android:id="@+id/tvNFCContent"
                 android:text="NFC data"
-                android:layout_marginTop="@dimen/fab_margin"
-                style="@style/TextAppearance.AppCompat.Body2"
-                android:layout_width="wrap_content"
+
+                android:layout_marginTop="@dimen/mtop"
+                style="@style/TextAppearance.AppCompat.Title"
+                android:layout_width="match_parent"
+                android:textAlignment="center"
                 android:layout_height="match_parent"/>
 
         </LinearLayout>
