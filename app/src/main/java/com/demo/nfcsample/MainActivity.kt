@@ -4,21 +4,19 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import android.nfc.NdefRecord
+import android.nfc.NdefMessage
 import android.nfc.NfcAdapter
 import android.nfc.Tag
 import android.nfc.tech.IsoDep
 import android.nfc.tech.Ndef
 import android.nfc.tech.NfcA
-import android.nfc.tech.NfcB
 import android.os.Bundle
 import android.provider.Settings
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
 import com.demo.nfcsample.databinding.ActivityMainBinding
-import com.demo.nfcsample.nfc.NfcBaseActivity
-import java.util.*
+import java.nio.charset.Charset
 
 
 class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback {
@@ -35,8 +33,8 @@ class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 //        window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-        binding.fab.setOnClickListener {
-            startActivity(Intent(this, NfcBaseActivity::class.java))
+        binding.writeNfcButton.setOnClickListener {
+            startActivity(Intent(this, WriteNfcActivity::class.java))
         }
 
         viewModel = ViewModelProvider(this)[NfcViewModel::class.java]
@@ -71,77 +69,51 @@ class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback {
         startActivity(intent)
     }
 
-
     override fun onTagDiscovered(tag: Tag?) {
         Log.d(TAG, "Discovered!  ")
         if (tag == null) {
             Log.d(TAG, "No se descubrió ninguna tarjeta")
-            binding.tvNFCContent.text = getText(R.string.no_tag_detected)
+            binding.tvNFCTechsDetails.text = getText(R.string.no_tag_detected)
             return
         }
 
         handleTag(tag)
-        val id = tag.id
-        Log.d(TAG, "onTagDiscovered: tag id raw: ${tag.id}")
-        Log.d(TAG, "ID de la tarjeta: ${id.joinToString("") { "%02x".format(it) }}")
 
-        // Obtain the list of technologies supported by this tag
-        val techList = tag.techList
-        Log.d(TAG, "Tecnologías soportadas: ${techList.joinToString(", ")}")
+
 
         // In case the tag supports Ndef, you can get the Ndef message
         if (Ndef::class.java.name in tag.techList) {
             val ndef = Ndef.get(tag)
-            val ndefMessage = ndef.cachedNdefMessage
-            val records = ndefMessage.records
-            for (record in records) {
-                if (record.tnf == NdefRecord.TNF_WELL_KNOWN && Arrays.equals(
-                        record.type,
-                        NdefRecord.RTD_URI
-                    )
-                ) {
-                    val uri = record.toUri()
-                    Log.d(TAG, "URL found: $uri")
+            val ndefMessage = ndef?.cachedNdefMessage
+            val records = ndefMessage?.records
+            runOnUiThread {
+                if (records != null) {
+                    for (record in records) {
+                        val payload = record.payload
+
+                        val textEncoding = if (payload[0].toInt() and 128 == 0) "UTF-8" else "UTF-16"
+                        val languageCodeLength = payload[0].toInt() and 63
+                        val text = String(payload, languageCodeLength + 1, payload.size - languageCodeLength - 1,
+                            Charset.forName(textEncoding))
+
+                        binding.tvNFCContent.text = text
+                    }
+                } else {
+                    binding.tvNFCContent.text = "No NDEF records found."
                 }
             }
-        }
-        // In case the tag supports NfcA, you can get more information about the tag
-        if (NfcA::class.java.name in techList) {
-            val nfcA = NfcA.get(tag)
-            Log.d(TAG, "[nfcA] Sak: ${nfcA.sak}")
-            Log.d(TAG, "[nfcA] Atqa: ${nfcA.atqa.joinToString("") { "%02x".format(it) }}")
-            Log.d(TAG, "[nfcA] Max Transceive Length: ${nfcA.maxTransceiveLength}")
-        }
-        if (NfcB::class.java.name in techList) {
-            val nfcB = NfcB.get(tag)
-            Log.d(
-                TAG,
-                "[nfcB] App Data: ${nfcB.applicationData.joinToString("") { "%02x".format(it) }}"
-            )
-            Log.d(
-                TAG,
-                "[nfcB] Prot Info: ${nfcB.protocolInfo.joinToString("") { "%02x".format(it) }}"
-            )
-            Log.d(TAG, "[nfcB] Max Transceive Length: ${nfcB.maxTransceiveLength}")
-        }
 
-        // In case the tag supports IsoDep, you can get more information about the tag
-        if (IsoDep::class.java.name in techList) {
-            val isoDep = IsoDep.get(tag)
-            Log.d(TAG, "[isoDep] Historical bytes: ${
-                isoDep.historicalBytes?.joinToString("") {
-                    "%02x".format(it)
-                }
-            }")
-            Log.d(TAG, "[isoDep] Hi layer response: ${
-                isoDep.hiLayerResponse?.joinToString("") {
-                    "%02x".format(it)
-                }
-            }")
-            Log.d(TAG, "[isoDep] Timeout: ${isoDep.timeout}")
-            Log.d(TAG, "[isoDep] Max Transceive Length: ${isoDep.maxTransceiveLength}")
-
-
+//            for (record in records) {
+//
+//                if (record.tnf == NdefRecord.TNF_WELL_KNOWN && Arrays.equals(
+//                        record.type,
+//                        NdefRecord.RTD_URI
+//                    )
+//                ) {
+//                    val uri = record.toUri()
+//                    Log.d(TAG, "URL found: $uri")
+//                }
+//            }
         }
 
     }
@@ -169,32 +141,60 @@ class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback {
     }
 
     private fun handleTag(tag: Tag) {
-        val nfcA = NfcA.get(tag)
-        val isoDep = IsoDep.get(tag)
         val tagInfo = StringBuilder().apply {
-            append("Technologies: ")
-            if (nfcA != null) append("NfcA ")
-            if (isoDep != null) append("IsoDep ")
+            append("Technologies : \n")
+            append(tag.techList.joinToString("\n") { "+ $it" })
             append("\n")
-
-            append("Technologies 2: ")
-            append(tag.techList.joinToString("\n") { it })
             append("\n")
-
             append("Tag Id Raw: ${tag.id}\n")
             append("Tag ID: ${tag.id.joinToString(":") { "%02x".format(it) }}\n")
-            append("\n")
-            append("Serial Number: ${tag.id.joinToString(":") { "%02x".format(it) }}\n")
-            if (nfcA != null) {
-                append("ATQA: ${nfcA.atqa.joinToString("") { "%02x".format(it) }}\n")
-                append("SAK: ${"%02x".format(nfcA.sak)}\n")
+
+            append("Tag Type: ${tag.describeContents()}\n")
+
+            if (Ndef::class.java.name in tag.techList) {
+                val ndef = Ndef.get(tag)
+                val ndefMessage = ndef.cachedNdefMessage
+                val records = ndefMessage?.records
+                append("\n")
+                append("NDEF Message: \n")
+                append("NDEF type ${ndef.type} \n")
+                append("NDEF maxSize ${ndef.maxSize} \n")
+                append("NDEF message size ${ndefMessage?.toByteArray()?.size} \n")
+                append("Records: \n")
+                records?.forEachIndexed { index, record ->
+
+                    append("Record $index: \n")
+                    append("Id: ${record.id}\n")
+
+                    append("TNF: ${record.tnf}\n")
+                    append("Type: ${record.type}\n")
+                    append("Payload: ${record.payload}\n")
+                    val payload = record.payload
+                    val text = String(payload)
+                    append("Text: $text\n")
+                    append("\n")
+                }
             }
-            if (isoDep != null) {
-                append("ATS: ${isoDep.historicalBytes?.joinToString("") { "%02x".format(it) }}\n")
+            if (IsoDep::class.java.name in tag.techList) {
+                val isoDep = IsoDep.get(tag)
+                append("IsoDep: \n")
+                append("IsoDep Timeout: ${isoDep?.timeout}\n")
+                append("IsoDep MaxTransceiveLength: ${isoDep?.maxTransceiveLength}\n")
             }
+            if (NfcA::class.java.name in tag.techList) {
+                val nfcA = NfcA.get(tag)
+                append("NfcA: \n")
+                append("NfcA ATQA: ${nfcA?.atqa?.joinToString("") { "%02x".format(it) }}\n")
+                append("NfcA SAK: ${"%02x".format(nfcA?.sak)}\n")
+                append("NfcA MaxTransceiveLength: ${nfcA?.maxTransceiveLength}\n")
+                append("NfcA Timeout: ${nfcA?.timeout}\n")
+            }
+
+
+
         }.toString()
 //        binding.tvNFCContent.text = tagInfo
-        runOnUiThread { binding.tvNFCContent.text = tagInfo }
+        runOnUiThread { binding.tvNFCTechsDetails.text = tagInfo }
     }
 
     override fun onPause() {

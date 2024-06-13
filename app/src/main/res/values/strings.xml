@@ -14,5 +14,6 @@
     <string name="nfc_disabled" >NFC is disabled. Please enable NFC to use this app.</string>
     <string name="nfc_not_supported" >NFC is not supported on this device.</string>
     <string name="no_tag_detected">\"No se descubrió ninguna tarjeta\"</string>
+    <string name="waiting_tap_nfc">Esperando tag NFC…</string>
 
 </resources>
