@@ -1,10 +1,6 @@
 package com.demo.nfcsample
 
-import android.content.BroadcastReceiver
-import android.content.Context
 import android.content.Intent
-import android.content.IntentFilter
-import android.nfc.NdefMessage
 import android.nfc.NfcAdapter
 import android.nfc.Tag
 import android.nfc.tech.IsoDep
@@ -14,7 +10,6 @@ import android.os.Bundle
 import android.provider.Settings
 import android.util.Log
 import android.widget.Toast
-import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
 import com.demo.nfcsample.databinding.ActivityMainBinding
 import com.demo.nfcsample.nfc.NfcBaseActivity
@@ -78,9 +73,6 @@ class MainActivity : NfcBaseActivity(), NfcAdapter.ReaderCallback {
             return
         }
         handleTag(tag)
-
-
-
         // In case the tag supports Ndef, you can get the Ndef message
         if (Ndef::class.java.name in tag.techList) {
             val ndef = Ndef.get(tag)
@@ -103,17 +95,6 @@ class MainActivity : NfcBaseActivity(), NfcAdapter.ReaderCallback {
                 }
             }
 
-//            for (record in records) {
-//
-//                if (record.tnf == NdefRecord.TNF_WELL_KNOWN && Arrays.equals(
-//                        record.type,
-//                        NdefRecord.RTD_URI
-//                    )
-//                ) {
-//                    val uri = record.toUri()
-//                    Log.d(TAG, "URL found: $uri")
-//                }
-//            }
         }
 
     }
